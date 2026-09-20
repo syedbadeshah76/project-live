@@ -1,0 +1,295 @@
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 92% 55%;
+    --warning-foreground: 30 30% 15%;
+    --info: 220 90% 60%;
+    --info-foreground: 0 0% 100%;
+    --surface-subtle: 220 20% 97%;
+
+    /* Edvanz Brand Colors */
+    --background: 210 20% 98%;
+    --foreground: 220 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+
+    /* Primary - Edvanz Blue */
+    --primary: 223 75% 48%;
+    --primary-foreground: 217 85% 96%;
+
+    /* Secondary - Light Blue */
+    --secondary: 214 95% 93%;
+    --secondary-foreground: 217 91% 35%;
+
+    /* Navy Accent */
+    --accent: 224 100% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --muted: 210 20% 95%;
+    --muted-foreground: 215 16% 47%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 55%;
+
+    --radius: 0.75rem;
+
+    /* Custom Edvanz Variables */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(223, 75%, 48%) 1%,
+      hsl(223, 75%, 48%) 50%,
+      hsl(223, 75%, 48%) 100%
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(220 50% 12%) 0%,
+      hsl(225 45% 18%) 50%,
+      hsl(230 40% 22%) 100%
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(0 0% 100%) 0%,
+      hsl(210 20% 98%) 100%
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(142 76% 36%) 0%,
+      hsl(152 69% 45%) 100%
+    );
+    --shadow-sm: 0 1px 2px 0 hsl(220 30% 15% / 0.05);
+    --shadow-md:
+      0 4px 6px -1px hsl(220 30% 15% / 0.08),
+      0 2px 4px -2px hsl(220 30% 15% / 0.05);
+    --shadow-lg:
+      0 10px 15px -3px hsl(220 30% 15% / 0.1),
+      0 4px 6px -4px hsl(220 30% 15% / 0.05);
+    --shadow-xl:
+      0 20px 25px -5px hsl(220 30% 15% / 0.1),
+      0 8px 10px -6px hsl(220 30% 15% / 0.05);
+
+    --shadow-glow: 0 0 40px hsl(217 91% 55% / 0.3);
+
+    --shadow-card:
+      0 2px 8px hsl(220 30% 15% / 0.06), 0 4px 16px hsl(220 30% 15% / 0.04);
+    --shadow-card-hover:
+      0 8px 24px hsl(220 30% 15% / 0.12), 0 4px 12px hsl(220 30% 15% / 0.08);
+
+    /* Sidebar */
+    --sidebar-background: 220 50% 15%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 217 91% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 45% 22%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 40% 25%;
+    --sidebar-ring: 217 91% 55%;
+  }
+
+  .dark {
+    --background: 220 50% 8%;
+    --foreground: 210 20% 95%;
+
+    --card: 220 45% 12%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 220 45% 12%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 223 75% 48%;
+    --primary-foreground: 220 50% 10%;
+
+    --secondary: 220 45% 18%;
+    --secondary-foreground: 210 20% 90%;
+
+    --accent: 217 85% 65%;
+    --accent-foreground: 220 50% 10%;
+
+    --muted: 220 40% 15%;
+    --muted-foreground: 215 16% 60%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 35% 20%;
+    --input: 220 35% 20%;
+    --ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Poppins", system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glass {
+    background: hsl(0 0% 100% / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-dark {
+    background: hsl(220 50% 10% / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+/* ----------------------------------------------- */
+.terms-page {
+  padding: 30px 20px;
+}
+
+.terms-container {
+  max-width: 1100px;
+  margin: auto;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  padding: 28px 32px;
+}
+
+.intro {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 22px;
+}
+ 
+.section {
+  margin-bottom: 24px;
+}
+ 
+.section h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+ 
+.section p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.9;
+  margin-bottom: 12px;
+}
+ 
+.section ul {
+  margin-left: 20px;
+}
+ 
+.section li {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+ 
+
+ 
+@media (max-width: 768px) {
+  .terms-container {
+    padding: 20px;
+  }
+ 
+  h1 {
+    font-size: 28px;
+  }
+ 
+  .section h3 {
+    font-size: 16px;
+  }
+ 
+  .section p,
+  .intro {
+    font-size: 13px;
+  }
+}
+/* --------------------------------- */
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
