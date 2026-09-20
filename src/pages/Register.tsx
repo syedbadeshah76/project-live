@@ -7,8 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { authService } from "@/services/auth.service";
-import { Country, State } from "country-state-city";
-import type { IState } from "country-state-city";
 import { Mail, Eye, EyeOff, X, Check, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

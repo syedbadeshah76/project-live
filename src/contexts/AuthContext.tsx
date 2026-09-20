@@ -145,22 +145,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("Edvanz_user");
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem("Edvanz_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
   });
   const [isLoading, setIsLoading] = useState(false);
 
   // Session validation on mount — evict stale/malformed sessions
   useEffect(() => {
-    const stored = localStorage.getItem("Edvanz_user");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (!parsed.id || !parsed.email || !parsed.role) {
-          localStorage.removeItem("Edvanz_user");
-          setUser(null);
-          return;
-        }
+    try {
+      const stored = localStorage.getItem("Edvanz_user");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (!parsed.id || !parsed.email || !parsed.role) {
+            localStorage.removeItem("Edvanz_user");
+            setUser(null);
+            return;
+          }
 
         // Existing sessions created before the authenticated id was resolved
         // may still store the email address as user.id. Refresh it on startup.
@@ -201,11 +206,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Existing session validation remains non-blocking.
         });
       } catch {
-        localStorage.removeItem("Edvanz_user");
+        try {
+          localStorage.removeItem("Edvanz_user");
+        } catch {}
         setUser(null);
       }
     }
-  }, []);
+  } catch {}
+}, []);
 
   // ── loginWithToken ─────────────────────────────────────────────────────────
   /**
