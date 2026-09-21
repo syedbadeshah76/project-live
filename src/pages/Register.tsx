@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { ClipboardEvent, KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,6 @@ import { Mail, Eye, EyeOff, X, Check, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { FileUploadButton } from "@/components/auth/FileUploadButton";
 import { usePresignedUpload } from "@/hooks/usePresignedUpload";
 import { useReferralCode } from "@/hooks/useReferralCode";
@@ -41,8 +40,16 @@ const studentSchema = z
       .max(30, "Last name cannot exceed 30 characters.")
       .regex(/^[A-Za-z ]+$/, "Only alphabets are allowed."),
     email: z.string().trim().email("Invalid email"),
-    country: z.string().min(1, "Country is required"),
-    state: z.string().min(1, "state is required"),
+    country: z
+      .string()
+      .trim()
+      .min(1, "Country is required")
+      .max(50, "Country cannot exceed 50 characters."),
+    city: z
+      .string()
+      .trim()
+      .min(1, "City is required")
+      .max(50, "City cannot exceed 50 characters."),
     password: z
       .string()
       .min(1, "Password is required.")
@@ -75,8 +82,16 @@ const instructorSchema = z
       .max(30, "Last name cannot exceed 30 characters.")
       .regex(/^[A-Za-z ]+$/, "Only alphabets are allowed."),
     email: z.string().trim().email("Invalid email"),
-    country: z.string().min(1, "Country is required"),
-    state: z.string().min(1, "State is required"),
+    country: z
+      .string()
+      .trim()
+      .min(1, "Country is required")
+      .max(50, "Country cannot exceed 50 characters."),
+    city: z
+      .string()
+      .trim()
+      .min(1, "City is required")
+      .max(50, "City cannot exceed 50 characters."),
     password: z
       .string()
       .min(1, "Password is required.")
@@ -355,8 +370,6 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isInstructorPasswordFocused, setIsInstructorPasswordFocused] =
     useState(false);
-  const [states, setStates] = useState<IState[]>([]);
-  const [instructorStates, setInstructorStates] = useState<IState[]>([]);
   const [instructorSubmitSuccess, setInstructorSubmitSuccess] = useState(false);
 
   const isMountedRef = useRef(true);
@@ -368,8 +381,6 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
       isMountedRef.current = false;
     };
   }, []);
-
-  const countries = useMemo(() => Country.getAllCountries(), []);
 
   /* AWS presigned uploads — resume (PDF) and intro video (MP4) */
   const resumeUpload = usePresignedUpload({
@@ -407,7 +418,7 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
       firstName: "",
       lastName: "",
       country: "",
-      state: "",
+      city: "",
       password: "",
       confirmPassword: "",
     },
@@ -429,19 +440,17 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
       firstName: "",
       lastName: "",
       country: "",
-      state: "",
+      city: "",
       password: "",
       confirmPassword: "",
     },
   });
 
   const studentValues = studentForm.watch();
-  const selectedCountry = studentValues.country;
   const studentPassword = studentValues.password ?? "";
   const studentConfirmPassword = studentValues.confirmPassword ?? "";
 
   const instructorValues = instructorForm.watch();
-  const instructorCountry = instructorValues.country;
   const instructorPassword = instructorValues.password ?? "";
   const instructorConfirmPassword = instructorValues.confirmPassword ?? "";
 
@@ -514,34 +523,6 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
     resumeUpload.isComplete &&
     introUpload.isComplete &&
     isInstructorFormComplete;
-
-  /* Country → states (student) */
-  useEffect(() => {
-    if (!selectedCountry) {
-      setStates([]);
-      return;
-    }
-
-    const country = Country.getAllCountries().find(
-      (c) => c.name === selectedCountry,
-    );
-    setStates(country ? State.getStatesOfCountry(country.isoCode) : []);
-  }, [selectedCountry]);
-
-  /* Country → states (instructor) */
-  useEffect(() => {
-    if (!instructorCountry) {
-      setInstructorStates([]);
-      return;
-    }
-
-    const country = Country.getAllCountries().find(
-      (c) => c.name === instructorCountry,
-    );
-    setInstructorStates(
-      country ? State.getStatesOfCountry(country.isoCode) : [],
-    );
-  }, [instructorCountry]);
 
   /* Resend timer — single interval, no leaks */
   useEffect(() => {
@@ -711,7 +692,7 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
         firstName: data.firstName,
         lastName: data.lastName,
         country: data.country,
-        city: data.state,
+        city: data.city,
         role: "student",
         ...(referralCode && referralValid !== false
           ? { referralCode: referralCode.trim().toUpperCase() }
@@ -776,7 +757,7 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
         firstName: data.firstName,
         lastName: data.lastName,
         country: data.country,
-        city: data.state,
+        city: data.city,
         introVideoFileKey: introUpload.fileKey ,
         resumeFileKey: resumeUpload.fileKey,
       });
@@ -1246,27 +1227,10 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
                       <label className="text-sm font-medium text-foreground mb-1.5 block">
                         Country
                       </label>
-                      <Controller
-                        name="country"
-                        control={studentForm.control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            items={countries.map((c) => ({
-                              label: c.name,
-                              value: c.name,
-                            }))}
-                            value={field.value || ""}
-                            onChange={(value) => {
-                              field.onChange(value);
-                              studentForm.setValue("state", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              });
-                            }}
-                            placeholder="Select Country"
-                          />
-                        )}
+                      <Input
+                        {...studentForm.register("country")}
+                        placeholder="Country"
+                        className="h-11 rounded-lg"
                       />
                       {studentForm.formState.errors.country && (
                         <p className="text-xs text-destructive mt-1">
@@ -1277,31 +1241,16 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
 
                     <div>
                       <label className="text-sm font-medium text-foreground mb-1.5 block">
-                        State
+                        City
                       </label>
-                      <Controller
-                        name="state"
-                        control={studentForm.control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            items={states.map((s) => ({
-                              label: s.name,
-                              value: s.name,
-                            }))}
-                            value={field.value || ""}
-                            onChange={(value) => field.onChange(value)}
-                            placeholder={
-                              selectedCountry
-                                ? "Select State"
-                                : "Select Country First"
-                            }
-                            disabled={!selectedCountry}
-                          />
-                        )}
+                      <Input
+                        {...studentForm.register("city")}
+                        placeholder="City"
+                        className="h-11 rounded-lg"
                       />
-                      {studentForm.formState.errors.state && (
+                      {studentForm.formState.errors.city && (
                         <p className="text-xs text-destructive mt-1">
-                          {studentForm.formState.errors.state.message}
+                          {studentForm.formState.errors.city.message}
                         </p>
                       )}
                     </div>
@@ -1581,27 +1530,10 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
                       <label className="text-sm font-medium text-foreground mb-1.5 block">
                         Country
                       </label>
-                      <Controller
-                        name="country"
-                        control={instructorForm.control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            items={countries.map((c) => ({
-                              label: c.name,
-                              value: c.name,
-                            }))}
-                            value={field.value || ""}
-                            onChange={(value) => {
-                              field.onChange(value);
-                              instructorForm.setValue("state", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              });
-                            }}
-                            placeholder="Enter Country"
-                          />
-                        )}
+                      <Input
+                        {...instructorForm.register("country")}
+                        placeholder="Country"
+                        className="h-11 rounded-lg"
                       />
                       {instructorForm.formState.errors.country && (
                         <p className="text-xs text-destructive mt-1">
@@ -1612,31 +1544,16 @@ const Signup = ({ isModal = false, onClose, onSwitchToLogin }: SignupProps) => {
 
                     <div>
                       <label className="text-sm font-medium text-foreground mb-1.5 block">
-                        State
+                        City
                       </label>
-                      <Controller
-                        name="state"
-                        control={instructorForm.control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            items={instructorStates.map((s) => ({
-                              label: s.name,
-                              value: s.name,
-                            }))}
-                            value={field.value || ""}
-                            onChange={(value) => field.onChange(value)}
-                            placeholder={
-                              instructorCountry
-                                ? "Enter state"
-                                : "Select Country First"
-                            }
-                            disabled={!instructorCountry}
-                          />
-                        )}
+                      <Input
+                        {...instructorForm.register("city")}
+                        placeholder="City"
+                        className="h-11 rounded-lg"
                       />
-                      {instructorForm.formState.errors.state && (
+                      {instructorForm.formState.errors.city && (
                         <p className="text-xs text-destructive mt-1">
-                          {instructorForm.formState.errors.state.message}
+                          {instructorForm.formState.errors.city.message}
                         </p>
                       )}
                     </div>

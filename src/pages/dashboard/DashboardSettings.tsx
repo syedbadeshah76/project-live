@@ -82,7 +82,6 @@ import {
   Clock,
 } from "lucide-react";
 import apiClient from "@/lib/api-client";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth.service";
 import { profileService } from "@/services/profile.service";
@@ -777,117 +776,6 @@ function PrivacyTab({
   const [activityOpen, setActivityOpen] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
 
-  const countries = useMemo(() => {
-    try {
-      return Country.getAllCountries() || [];
-    } catch {
-      return [];
-    }
-  }, []);
-
-  const countryItems = useMemo(
-    () =>
-      (countries || [])
-        .filter((c) => c && typeof c.name === "string")
-        .map((c) => ({
-          label: `${c.flag ? c.flag + " " : ""}${c.name}`,
-          value: c.name,
-        })),
-    [countries]
-  );
-
-  const currentCountryObj = useMemo(() => {
-    if (!selectedCountry || typeof selectedCountry !== "string") return null;
-    const search = selectedCountry.trim().toLowerCase();
-    if (!search) return null;
-    return (
-      (countries || []).find(
-        (c) =>
-          c &&
-          ((typeof c.name === "string" && c.name.toLowerCase() === search) ||
-            (typeof c.isoCode === "string" && c.isoCode.toLowerCase() === search))
-      ) || null
-    );
-  }, [selectedCountry, countries]);
-
-  const availableStates = useMemo(() => {
-    if (!currentCountryObj || !currentCountryObj.isoCode) return [];
-    try {
-      return State.getStatesOfCountry(currentCountryObj.isoCode) || [];
-    } catch {
-      return [];
-    }
-  }, [currentCountryObj]);
-
-  const availableCities = useMemo(() => {
-    if (!currentCountryObj || !currentCountryObj.isoCode) return [];
-    try {
-      return City.getCitiesOfCountry(currentCountryObj.isoCode) || [];
-    } catch {
-      return [];
-    }
-  }, [currentCountryObj]);
-
-  const locationType = useMemo<"State" | "City" | null>(() => {
-    if (!selectedLocation || !currentCountryObj) return null;
-    const locLower = selectedLocation.trim().toLowerCase();
-
-    // Check if matches state name or code
-    const isState = availableStates.some(
-      (s) =>
-        s &&
-        ((typeof s.name === "string" && s.name.toLowerCase() === locLower) ||
-          (typeof s.isoCode === "string" && s.isoCode.toLowerCase() === locLower))
-    );
-    if (isState) return "State";
-
-    // Check if matches city name
-    const isCity = availableCities.some(
-      (c) => c && typeof c.name === "string" && c.name.toLowerCase() === locLower
-    );
-    if (isCity) return "City";
-
-    return availableStates.length > 0 ? "City" : "City";
-  }, [selectedLocation, currentCountryObj, availableStates, availableCities]);
-
-  const locationItems = useMemo(() => {
-    const items: { label: string; value: string }[] = [];
-    const seen = new Set<string>();
-
-    (availableStates || [])
-      .filter((s) => s && typeof s.name === "string")
-      .forEach((s) => {
-        const key = s.name.toLowerCase();
-        if (!seen.has(key)) {
-          seen.add(key);
-          items.push({ label: s.name, value: s.name });
-        }
-      });
-
-    // If no states are defined for this country, provide cities
-    if (items.length === 0 && (availableCities || []).length > 0) {
-      availableCities
-        .filter((c) => c && typeof c.name === "string")
-        .forEach((c) => {
-          const key = c.name.toLowerCase();
-          if (!seen.has(key)) {
-            seen.add(key);
-            items.push({ label: c.name, value: c.name });
-          }
-        });
-    }
-
-    // If user's selected location is not yet in the items list, include it so SearchableSelect can show it
-    if (selectedLocation && !seen.has(selectedLocation.trim().toLowerCase())) {
-      items.unshift({
-        label: selectedLocation.trim(),
-        value: selectedLocation.trim(),
-      });
-    }
-
-    return items;
-  }, [availableStates, availableCities, selectedLocation]);
-
   useEffect(() => {
     let isMounted = true;
     setLoadingLocation(true);
@@ -898,20 +786,11 @@ function PrivacyTab({
         const c = res?.data?.country;
         const ci = res?.data?.city;
 
-        if (typeof c === "string" && c.trim()) {
-          const cTrim = c.trim();
-          const matchedCountry = (countries || []).find(
-            (item) =>
-              item &&
-              ((typeof item.name === "string" &&
-                item.name.toLowerCase() === cTrim.toLowerCase()) ||
-                (typeof item.isoCode === "string" &&
-                  item.isoCode.toLowerCase() === cTrim.toLowerCase()))
-          );
-          setSelectedCountry(matchedCountry ? matchedCountry.name : cTrim);
+        if (typeof c === "string") {
+          setSelectedCountry(c.trim());
         }
 
-        if (typeof ci === "string" && ci.trim()) {
+        if (typeof ci === "string") {
           setSelectedLocation(ci.trim());
         }
       })
@@ -924,14 +803,14 @@ function PrivacyTab({
     return () => {
       isMounted = false;
     };
-  }, [countries]);
+  }, []);
 
   const save = async () => {
     setSavingLocation(true);
     try {
       await profileService.updateProfile({
-        country: selectedCountry,
-        city: selectedLocation,
+        country: selectedCountry.trim(),
+        city: selectedLocation.trim(),
       });
       toast({ title: "Country and location updated successfully" });
     } catch (err) {
@@ -953,44 +832,22 @@ function PrivacyTab({
       ) : (
         <>
           <div className="space-y-1.5">
-            <Label>Change Country</Label>
-            <SearchableSelect
-              items={countryItems}
+            <Label htmlFor="change-country">Change Country</Label>
+            <Input
+              id="change-country"
               value={selectedCountry}
-              onChange={(val) => {
-                setSelectedCountry(val);
-                setSelectedLocation("");
-              }}
-              placeholder="Select Country"
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              placeholder="Enter Country"
             />
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label>
-                Change {locationType ? locationType : "City / State"}
-              </Label>
-              {selectedLocation && locationType && (
-                <Badge variant="secondary" className="text-xs font-normal">
-                  Location Type:{" "}
-                  <span className="font-semibold text-foreground ml-1">
-                    {locationType}
-                  </span>
-                </Badge>
-              )}
-            </div>
-            <SearchableSelect
-              items={locationItems}
+            <Label htmlFor="change-city-state">Change City / State</Label>
+            <Input
+              id="change-city-state"
               value={selectedLocation}
-              onChange={(val) => setSelectedLocation(val)}
-              placeholder={
-                !selectedCountry
-                  ? "Select country first"
-                  : locationItems.length === 0
-                  ? "No states/cities available"
-                  : `Select ${locationType || "City / State"}`
-              }
-              disabled={!selectedCountry || locationItems.length === 0}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              placeholder="Enter City / State"
             />
           </div>
 
